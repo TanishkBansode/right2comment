@@ -105,13 +105,30 @@ func (kv *KVClient) Get(key string) ([]byte, error) {
 
 // Set stores a value in KV
 func (kv *KVClient) Set(key string, value []byte) error {
-	payload := map[string]string{
-		"key":   key,
-		"value": string(value),
+	// Use the generic command endpoint which expects an array: ["SET", key, value]
+	// This avoids URL encoding issues and matches the Upstash/Redis REST API specification.
+	cmd := []interface{}{"SET", key, string(value)}
+
+	// We use "/" endpoint with the command array
+	resp, err := kv.makeRequest("POST", "/", cmd)
+	if err != nil {
+		return err
+	}
+	
+	// Check specifically for Redis errors in response
+	// Successful SET returns {"result": "OK"}
+	var response struct {
+		Result string `json:"result"`
+		Error  string `json:"error"`
+	}
+	if err := json.Unmarshal(resp, &response); err != nil {
+		return fmt.Errorf("failed to parse set response: %w", err)
+	}
+	if response.Error != "" {
+		return fmt.Errorf("KV Set Error: %s", response.Error)
 	}
 
-	_, err := kv.makeRequest("POST", "/set", payload)
-	return err
+	return nil
 }
 
 // AddCommentKV adds a comment to Vercel KV
