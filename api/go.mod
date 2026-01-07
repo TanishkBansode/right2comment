@@ -1,4 +1,4 @@
-module github.com/TanishkBansode/rtc-api
+module github.com/TanishkBansode/right2comment/api
 
 go 1.23.2
 

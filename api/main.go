@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/TanishkBansode/rtc-api/database"
+	"github.com/TanishkBansode/right2comment/api/database"
 	"github.com/gofiber/fiber/v2"
 )
 
