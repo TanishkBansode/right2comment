@@ -12,6 +12,7 @@ import (
 	"github.com/TanishkBansode/right2comment/pkg/database"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 )
 
 // Global regular expression for a valid 11-character YouTube ID.
@@ -146,6 +147,13 @@ func init() {
 
 	// Create and configure Fiber app
 	app = fiber.New()
+
+	// Enable CORS for all origins (or restrict to youtube.com in production)
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "*", // For development/demo. Ideally: "https://www.youtube.com"
+		AllowHeaders: "Origin, Content-Type, Accept",
+	}))
+
 	setupRoutes(app)
 }
 
