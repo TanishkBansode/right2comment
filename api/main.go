@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/TanishkBansode/right2comment/api/database"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/adaptor"
 )
 
 // Global regular expression for a valid 11-character YouTube ID.
@@ -135,15 +137,30 @@ func setupRoutes(app *fiber.App) {
 	}
 }
 
-func main() {
-	// It's good practice to handle potential errors from initialization.
+// Initialize Fiber app at package level for serverless reuse
+var app *fiber.App
+
+func init() {
+	// Initialize database (KV if available, otherwise file storage)
 	database.InitDB("../data")
 
-	app := fiber.New()
-
+	// Create and configure Fiber app
+	app = fiber.New()
 	setupRoutes(app)
+}
 
+// Handler is the entry point for Vercel serverless functions
+func Handler(w http.ResponseWriter, r *http.Request) {
+	// Convert Fiber app to standard HTTP handler
+	handler := adaptor.FiberApp(app)
+	handler.ServeHTTP(w, r)
+}
+
+// main is used for local development only
+// When deployed to Vercel, only the Handler function is used
+func main() {
 	log.Println("Starting server on port 3000...")
+	log.Println("NOTE: This is local development mode. Database will use file storage unless KV env vars are set.")
 	if err := app.Listen(":3000"); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}

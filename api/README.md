@@ -2,6 +2,8 @@
 
 RTC-API is a lightweight Go API server built with Fiber that provides commenting functionality for the Right to Comment system. It serves as the backend API for managing comments associated with YouTube videos.
 
+**Storage**: Uses Vercel KV (Redis) when deployed, with automatic fallback to file-based storage for local development.
+
 ## Project Structure
 
 ```
@@ -17,14 +19,20 @@ RTC-API/
 ## Features
 
 - RESTful API endpoints for comment management
-- SQLite database integration
+- Vercel KV (Redis) storage for production
+- Automatic fallback to file-based storage for local development
+- Serverless deployment on Vercel
 - Timestamp formatting for comments
+- Support for various YouTube URL formats
 
 ## Prerequisites
 
-Before you begin, ensure you have the following installed:
-- Go (1.16 or later)
-- SQLite3
+### Local Development
+- Go (1.23 or later)
+
+### Production Deployment
+- Vercel account
+- Vercel KV database (can be created in Vercel dashboard)
 
 ## Installation
 
@@ -39,14 +47,22 @@ cd rtc/rtc-api
 go mod tidy
 ```
 
-## Running the API Server
+## Local Development
 
 Start the server with:
 ```bash
+cd api
 go run main.go
 ```
 
-The server will start on `http://localhost:3000`
+The server will start on `http://localhost:3000` using file-based storage in `/tmp/comments-data`.
+
+**Optional**: To test with Vercel KV locally, set environment variables:
+```bash
+export KV_REST_API_URL="your-kv-url"
+export KV_REST_API_TOKEN="your-kv-token"
+go run main.go
+```
 
 ## API Endpoints
 
@@ -109,13 +125,53 @@ Example error response:
 }
 ```
 
-## Development
+## Deployment to Vercel
 
-The API server is configured to:
-- Run on port 3000
-- Use SQLite database stored in "../data"
-- Format dates in "2 Jan 2006" format
-- Return JSON responses
+### Step 1: Create Vercel KV Database
+
+1. Go to your [Vercel Dashboard](https://vercel.com/dashboard)
+2. Navigate to **Storage** tab
+3. Click **Create Database** → **KV** (Redis)
+4. Note the **KV_REST_API_URL** and **KV_REST_API_TOKEN** (these are auto-added to your project)
+
+### Step 2: Deploy
+
+You have two options:
+
+**Option A: Deploy via GitHub (Recommended)**
+1. Push your code to GitHub
+2. Import the repository in Vercel
+3. Vercel will automatically detect the Go API
+4. Environment variables from KV are automatically linked
+
+**Option B: Deploy via CLI**
+```bash
+npm i -g vercel
+vercel login
+vercel --prod
+```
+
+### Step 3: Verify Deployment
+
+Test your deployed API:
+```bash
+curl https://your-project.vercel.app/
+# Should return: "API is running."
+
+# Test adding a comment
+curl -X POST -F "comment=Hello World" https://your-project.vercel.app/comments/VIDEO_ID
+
+# Test getting comments
+curl https://your-project.vercel.app/comments/VIDEO_ID
+```
+
+## Configuration
+
+The API automatically detects the environment:
+- **Vercel (Production)**: Uses Vercel KV for persistent storage
+- **Local Development**: Uses file-based storage in `/tmp/comments-data`
+- **Date Format**: Comments are formatted as "2 Jan 2006"
+- **Response Format**: All responses are JSON
 
 ## Testing
 

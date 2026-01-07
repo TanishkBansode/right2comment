@@ -10,8 +10,10 @@ import (
 )
 
 var (
-	dataDir string
-	mu      sync.Mutex
+	dataDir  string
+	mu       sync.Mutex
+	kvClient *KVClient
+	useKV    bool
 )
 
 type comment struct {
@@ -19,16 +21,26 @@ type comment struct {
 	CreatedAt string `json:"createdAt"` // RFC3339
 }
 
-// InitDB initializes the storage directory. Call once at startup.
+// InitDB initializes the storage. Uses Vercel KV if configured, otherwise falls back to file storage.
 func InitDB(dir string) error {
+	// Try to initialize KV client
+	kvClient = NewKVClient()
+	useKV = kvClient.IsConfigured()
+
+	if useKV {
+		// Using Vercel KV
+		return nil
+	}
+
+	// Fallback to file-based storage for local development
 	if dir == "" {
-		return fmt.Errorf("data directory path required")
+		dir = "/tmp/comments-data" // Default fallback
 	}
 	abs, err := filepath.Abs(dir)
 	if err != nil {
 		return err
 	}
-	if err := os.MkdirAll(abs, 0o755); err != nil {
+	if err := os.MkdirAll(abs, 0755); err != nil {
 		return err
 	}
 	dataDir = abs
@@ -36,6 +48,7 @@ func InitDB(dir string) error {
 }
 
 // AddComment appends a comment for the given videoID.
+// Uses Vercel KV if configured, otherwise uses file-based storage.
 func AddComment(videoID, text string) error {
 	if videoID == "" {
 		return fmt.Errorf("videoID required")
@@ -43,6 +56,13 @@ func AddComment(videoID, text string) error {
 	if text == "" {
 		return fmt.Errorf("comment text required")
 	}
+
+	// Use Vercel KV if available
+	if useKV {
+		return AddCommentKV(kvClient, videoID, text)
+	}
+
+	// Fallback to file-based storage
 	if dataDir == "" {
 		return fmt.Errorf("database not initialized")
 	}
@@ -73,7 +93,7 @@ func AddComment(videoID, text string) error {
 		return err
 	}
 
-	if err := os.WriteFile(path, out, 0o644); err != nil {
+	if err := os.WriteFile(path, out, 0644); err != nil {
 		return err
 	}
 
@@ -82,10 +102,18 @@ func AddComment(videoID, text string) error {
 
 // GetComments returns stored comments for a video as []map[string]string
 // where each map contains "text" and "createdAt" keys (createdAt in RFC3339).
+// Uses Vercel KV if configured, otherwise uses file-based storage.
 func GetComments(videoID string) ([]map[string]string, error) {
 	if videoID == "" {
 		return nil, fmt.Errorf("videoID required")
 	}
+
+	// Use Vercel KV if available
+	if useKV {
+		return GetCommentsKV(kvClient, videoID)
+	}
+
+	// Fallback to file-based storage
 	if dataDir == "" {
 		return nil, fmt.Errorf("database not initialized")
 	}
