@@ -19,9 +19,19 @@ type KVClient struct {
 
 // NewKVClient creates a new Vercel KV client
 func NewKVClient() *KVClient {
+	url := os.Getenv("KV_REST_API_URL")
+	token := os.Getenv("KV_REST_API_TOKEN")
+
+	// Debug log (masked)
+	if url != "" {
+		fmt.Printf("KV Client initialized with URL: %s\n", url)
+	} else {
+		fmt.Println("KV_REST_API_URL is empty")
+	}
+
 	return &KVClient{
-		apiURL:   os.Getenv("KV_REST_API_URL"),
-		apiToken: os.Getenv("KV_REST_API_TOKEN"),
+		apiURL:   url,
+		apiToken: token,
 		client:   &http.Client{Timeout: 10 * time.Second},
 	}
 }
@@ -42,7 +52,8 @@ func (kv *KVClient) makeRequest(method, endpoint string, body interface{}) ([]by
 		reqBody = bytes.NewBuffer(jsonData)
 	}
 
-	req, err := http.NewRequest(method, kv.apiURL+endpoint, reqBody)
+	fullURL := kv.apiURL + endpoint
+	req, err := http.NewRequest(method, fullURL, reqBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -54,7 +65,7 @@ func (kv *KVClient) makeRequest(method, endpoint string, body interface{}) ([]by
 
 	resp, err := kv.client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("request failed: %w", err)
+		return nil, fmt.Errorf("request failed to %s: %w", fullURL, err)
 	}
 	defer resp.Body.Close()
 
@@ -64,6 +75,7 @@ func (kv *KVClient) makeRequest(method, endpoint string, body interface{}) ([]by
 	}
 
 	if resp.StatusCode >= 400 {
+		fmt.Printf("KV API Failure: %s %s -> Status %d\nResponse: %s\n", method, fullURL, resp.StatusCode, string(respBody))
 		return nil, fmt.Errorf("KV API error (status %d): %s", resp.StatusCode, string(respBody))
 	}
 

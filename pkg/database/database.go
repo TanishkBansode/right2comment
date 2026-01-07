@@ -28,14 +28,19 @@ func InitDB(dir string) error {
 	useKV = kvClient.IsConfigured()
 
 	if useKV {
-		// Using Vercel KV
+		fmt.Println("Database: Using Vercel KV Storage")
 		return nil
 	}
 
-	// Fallback to file-based storage for local development
-	if dir == "" {
-		dir = "/tmp/comments-data" // Default fallback
+	fmt.Println("Database: Using File Storage (Fallback)")
+
+	// Fallback to file-based storage
+	// If dir is relative or risky, force /tmp on Vercel or use safe default
+	if os.Getenv("VERCEL") != "" || dir == "" {
+		fmt.Println("Environment: Vercel/Serverless detected or no dir provided. Using /tmp/comments-data")
+		dir = "/tmp/comments-data"
 	}
+
 	abs, err := filepath.Abs(dir)
 	if err != nil {
 		return err
@@ -44,6 +49,7 @@ func InitDB(dir string) error {
 		return err
 	}
 	dataDir = abs
+	fmt.Printf("Database: File storage initialized at %s\n", dataDir)
 	return nil
 }
 

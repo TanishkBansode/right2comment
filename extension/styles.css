@@ -1,0 +1,107 @@
+/* Right2Comment Container */
+#r2c-container {
+  background-color: #0f0f0f;
+  color: #fff;
+  border: 1px solid #333;
+  border-radius: 12px;
+  padding: 16px;
+  margin: 16px 0;
+  font-family: Roboto, Arial, sans-serif;
+  font-size: 1.4rem;
+}
+
+#r2c-header {
+  font-size: 1.6rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#r2c-header span {
+  color: #aaa;
+  font-size: 1.2rem;
+  font-weight: 400;
+}
+
+/* Comment List */
+#r2c-comment-list {
+  max-height: 400px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.r2c-comment {
+  background-color: #1a1a1a;
+  padding: 10px;
+  border-radius: 8px;
+  border-left: 3px solid #3ea6ff;
+}
+
+.r2c-comment-text {
+  font-size: 1.4rem;
+  line-height: 1.4;
+  margin-bottom: 4px;
+}
+
+.r2c-comment-meta {
+  font-size: 1.2rem;
+  color: #aaa;
+}
+
+/* Add Comment Form */
+#r2c-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#r2c-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #555;
+  color: #fff;
+  padding: 8px 0;
+  font-size: 1.4rem;
+  transition: border-color 0.2s;
+}
+
+#r2c-input:focus {
+  outline: none;
+  border-bottom-color: #3ea6ff;
+}
+
+#r2c-submit {
+  align-self: flex-end;
+  background-color: #3ea6ff;
+  color: #0f0f0f;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 18px;
+  font-weight: 500;
+  cursor: pointer;
+  font-size: 1.4rem;
+}
+
+#r2c-submit:hover {
+  background-color: #65b8ff;
+}
+
+#r2c-submit:disabled {
+  background-color: #555;
+  color: #888;
+  cursor: not-allowed;
+}
+
+/* Scrollbar */
+#r2c-comment-list::-webkit-scrollbar {
+  width: 8px;
+}
+#r2c-comment-list::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 4px;
+}

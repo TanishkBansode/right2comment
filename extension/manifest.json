@@ -1,0 +1,32 @@
+{
+    "manifest_version": 3,
+    "name": "Right2Comment",
+    "version": "1.0",
+    "description": "Restore open comments on YouTube.",
+    "icons": {
+        "48": "icon.png"
+    },
+    "background": {
+        "scripts": [
+            "background.js"
+        ]
+    },
+    "action": {},
+    "content_scripts": [
+        {
+            "matches": [
+                "*://*.youtube.com/*"
+            ],
+            "js": [
+                "content.js"
+            ],
+            "css": [
+                "styles.css"
+            ]
+        }
+    ],
+    "host_permissions": [
+        "https://right2comment.vercel.app/*"
+    ],
+    "permissions": []
+}

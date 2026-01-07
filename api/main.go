@@ -143,7 +143,8 @@ var app *fiber.App
 
 func init() {
 	// Initialize database (KV if available, otherwise file storage)
-	database.InitDB("../data")
+	// Empty string triggers default logic (/tmp on Vercel, or custom logic)
+	database.InitDB("")
 
 	// Create and configure Fiber app
 	app = fiber.New()
