@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/TanishkBansode/right2comment/api/database"
+	"github.com/TanishkBansode/right2comment/pkg/database"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/adaptor"
 )
