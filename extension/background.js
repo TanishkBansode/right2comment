@@ -1,4 +1,10 @@
 const API_URL = "https://right2comment.vercel.app";
+const PROJECT_ID = 5564;
+
+const FLAVORTOWN_HEADER = {
+  "X-Flavortown-Ext-5564": "true"
+};
+
 
 // Listener for messages from content script
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -18,7 +24,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 async function fetchComments(videoId) {
-    const res = await fetch(`${API_URL}/comments/${videoId}`);
+    const res = await fetch(`${API_URL}/comments/${videoId}`, {
+        headers: FLAVORTOWN_HEADER
+    });
     if (!res.ok) throw new Error("API Error: " + res.statusText);
     return await res.json();
 }
@@ -29,6 +37,7 @@ async function postComment(videoId, text) {
 
     const res = await fetch(`${API_URL}/comments/${videoId}`, {
         method: "POST",
+        headers: FLAVORTOWN_HEADER,
         body: formData
     });
 
@@ -37,9 +46,8 @@ async function postComment(videoId, text) {
         try {
             const err = await res.json();
             errorMsg = err.error || errorMsg;
-        } catch (e) {
-            // ignore JSON parse error
-        }
+        } catch {}
         throw new Error(errorMsg);
     }
 }
+
