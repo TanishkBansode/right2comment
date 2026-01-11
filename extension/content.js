@@ -1,9 +1,26 @@
-
-
 // Helper to get video ID
 function getVideoId() {
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get("v");
+    try {
+        const u = new URL(location.href);
+        const v = u.searchParams.get("v");
+        if (v) return v;
+        // handle youtu.be/ID and path-based URLs (/shorts/ID, /embed/ID)
+        const host = u.hostname.toLowerCase();
+        const path = u.pathname || "";
+        if (host.includes("youtu.be")) {
+            const id = path.replace(/^\/+|\/+$/g, "");
+            return id || null;
+        }
+        const segs = path.split("/").filter(Boolean);
+        if (segs.length > 0) {
+            const last = segs[segs.length - 1];
+            // if last segment looks like a video id (11 chars) return it
+            if (/^[a-zA-Z0-9_-]{11}$/.test(last)) return last;
+        }
+        return null;
+    } catch (e) {
+        return null;
+    }
 }
 
 // Initial Setup
@@ -42,10 +59,7 @@ function injectUI(videoId) {
     const header = document.createElement("div");
     header.id = "r2c-header";
     const headerTitle = document.createTextNode("Right2Comment ");
-    const headerSpan = document.createElement("span");
-    headerSpan.textContent = "Uncensored";
     header.appendChild(headerTitle);
-    header.appendChild(headerSpan);
     container.appendChild(header);
 
     // Comment List
@@ -77,8 +91,13 @@ function injectUI(videoId) {
     form.appendChild(btn);
     container.appendChild(form);
 
-    // Insert above native comments
-    target.parentElement.insertBefore(container, target);
+    // Insert above native comments — guard if parent is missing
+    if (target.parentNode) {
+        target.parentNode.insertBefore(container, target);
+    } else {
+        // Fallback: append inside target or to body
+        try { target.appendChild(container); } catch (e) { document.body.appendChild(container); }
+    }
 
     // Event Listeners
     input.addEventListener("input", () => {
@@ -114,7 +133,7 @@ async function fetchComments(videoId) {
 
     try {
         console.log("[R2C] Requesting comments for", videoId);
-        const response = await chrome.runtime.sendMessage({
+        const response = await sendMessageAsync({
             action: "FETCH_COMMENTS",
             videoId: videoId
         });
@@ -137,14 +156,13 @@ async function fetchComments(videoId) {
 
 // Post Comment
 async function postComment(videoId, text) {
-    const response = await chrome.runtime.sendMessage({
+    const response = await sendMessageAsync({
         action: "POST_COMMENT",
         videoId: videoId,
         text: text
     });
-
-    if (!response.success) {
-        throw new Error(response.error || "Unknown error");
+    if (!response || !response.success) {
+        throw new Error((response && response.error) || "Unknown error");
     }
 }
 
@@ -214,4 +232,31 @@ if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", init);
 } else {
     init();
+}
+
+// Add a helper to send messages that works with both Chrome (callback) and browsers that return a Promise.
+function sendMessageAsync(message) {
+    return new Promise((resolve, reject) => {
+        try {
+            // Try Chrome-style with callback
+            const maybePromise = chrome.runtime.sendMessage(message, (response) => {
+                if (chrome.runtime.lastError) {
+                    reject(chrome.runtime.lastError);
+                } else {
+                    resolve(response);
+                }
+            });
+            // Some implementations return a Promise; handle that too
+            if (maybePromise && typeof maybePromise.then === "function") {
+                maybePromise.then(resolve).catch(reject);
+            }
+        } catch (err) {
+            // Fallback to browser.* if available
+            if (typeof browser !== "undefined" && browser.runtime && browser.runtime.sendMessage) {
+                browser.runtime.sendMessage(message).then(resolve).catch(reject);
+            } else {
+                reject(err);
+            }
+        }
+    });
 }

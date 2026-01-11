@@ -2,9 +2,14 @@
     "manifest_version": 3,
     "name": "Right2Comment",
     "version": "1.0",
-    "description": "Restore open comments on YouTube.",
+    "description": "Gain Freedom of comments on YouTube.",
     "icons": {
         "48": "icon.png"
+    },
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "right2comment@example.com"
+        }
     },
     "background": {
         "scripts": [
