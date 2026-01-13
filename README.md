@@ -41,3 +41,6 @@ Discussion should happen *where the video already is*, not on a separate website
 Right2Comment is available on Firefox:
 
 https://addons.mozilla.org/en-US/firefox/addon/right2comment/
+
+Just install it and go to the comments section.
+
