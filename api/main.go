@@ -152,7 +152,7 @@ func init() {
 	// Enable CORS for all origins (or restrict to youtube.com in production)
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "*", // For development/demo. Ideally: "https://www.youtube.com"
-		AllowHeaders: "Origin, Content-Type, Accept",
+		AllowHeaders: "Origin, Content-Type, Accept, X-Flavortown-Ext-5564",
 	}))
 
 	setupRoutes(app)
