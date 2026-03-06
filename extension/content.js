@@ -23,12 +23,21 @@ function getVideoId() {
     }
 }
 
+// Track pending injectUI retries so we can cancel stale ones
+let _injectRetryTimer = null;
+
 // Initial Setup
 function init() {
     console.log("[R2C] Init called");
     const videoId = getVideoId();
     console.log("[R2C] Video ID:", videoId);
     if (!videoId) return;
+
+    // Cancel any pending injectUI retry from a previous init() call
+    if (_injectRetryTimer) {
+        clearTimeout(_injectRetryTimer);
+        _injectRetryTimer = null;
+    }
 
     injectUI(videoId);
     fetchComments(videoId);
@@ -45,8 +54,8 @@ function injectUI(videoId) {
     const target = document.querySelector("#comments") || document.querySelector("ytd-comments");
 
     if (!target) {
-        // Retry if DOM not ready
-        setTimeout(() => injectUI(videoId), 1000);
+        // Retry if DOM not ready (use tracked timer so init() can cancel it)
+        _injectRetryTimer = setTimeout(() => injectUI(videoId), 1000);
         return;
     }
 
