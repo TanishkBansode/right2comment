@@ -258,3 +258,4 @@ func fetchAndFormatComments(videoID string) ([]fiber.Map, error) {
 
 	return commentsJSON, nil
 }
+
