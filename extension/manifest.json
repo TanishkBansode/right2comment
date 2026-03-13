@@ -24,7 +24,20 @@
     }
   ],
   "host_permissions": [
-    "https://right2comment.vercel.app/*"
+    "https://right2comment.vercel.app/*",
+    "https://flavortown.hackclub.com/*"
   ],
-  "permissions": []
+  "permissions": [
+    "declarativeNetRequest",
+    "declarativeNetRequestWithHostAccess"
+  ],
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "flavortown_header",
+        "enabled": true,
+        "path": "rules.json"
+      }
+    ]
+  }
 }
